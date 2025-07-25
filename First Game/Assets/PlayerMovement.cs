@@ -9,6 +9,8 @@ public class PlayerMovement : MonoBehaviour
     private bool JumpInput = false;
     private int LanePosition = 0;
     private Vector3 TargetPosition;
+
+    private bool IsPlayerGrounded = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -18,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space) && IsPlayerGrounded)
         {
             JumpInput = true;
         }
@@ -35,6 +37,11 @@ public class PlayerMovement : MonoBehaviour
 
         TargetPosition = new Vector3(LanePosition * 3, transform.position.y, transform.position.z);
         transform.position = Vector3.Lerp(transform.position, TargetPosition, 10 * Time.deltaTime);
+
+        if (transform.position.y < 0)
+        {
+            GameManager.Instance.GameOver();
+        }
     }
 
     private void FixedUpdate()
@@ -45,6 +52,20 @@ public class PlayerMovement : MonoBehaviour
 
             PlayerRB.AddForce(Vector3.up * JumpForce, ForceMode.Impulse);
             JumpInput = false;
+            IsPlayerGrounded = false;
         }
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.collider.CompareTag("Obstacle"))
+        {
+            GameManager.Instance.GameOver();
+        }
+        else if(collision.collider.CompareTag("Ground"))
+        {
+            IsPlayerGrounded = true;
+        }
+        
     }
 }
